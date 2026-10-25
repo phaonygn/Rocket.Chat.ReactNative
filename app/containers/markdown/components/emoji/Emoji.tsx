@@ -50,13 +50,13 @@ const Emoji = ({ block, isBigEmoji, style = {}, index, isAvatar = false }: IEmoj
 	const isAsciiEmoji = !!block?.shortCode && block.value?.value !== block?.shortCode;
 	const displayAsciiEmoji = !convertAsciiEmoji && isAsciiEmoji && !!block.value;
 	const customEmojiSize = {
-		width: 15 * fontScale,
-		height: 15 * fontScale
+		width: 128 * fontScale,
+		height: 128 * fontScale
 	};
 
 	const customEmojiBigSize = {
-		width: 30 * fontScale,
-		height: 30 * fontScale
+		width: 128 * fontScale,
+		height: 128 * fontScale
 	};
 
 	const avatarStyle = {
