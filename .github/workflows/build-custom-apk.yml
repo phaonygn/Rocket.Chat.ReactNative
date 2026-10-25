@@ -37,15 +37,52 @@ jobs:
           printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
           python3 -m json.tool android/app/google-services.json > /dev/null
     
-      - name: Build debug APK
+      - name: Restore Android signing key
+        shell: bash
+        env:
+          SIGNING_KEY_ENCRYPTED_BASE64: ${{ secrets.SIGNING_KEY_ENCRYPTED_BASE64 }}
+          ENCRYPTION_PASSWORD: ${{ secrets.ENCRYPTION_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$SIGNING_KEY_ENCRYPTED_BASE64" ] || [ -z "$ENCRYPTION_PASSWORD" ]; then
+            echo "Error: Signing key secrets are missing."
+            exit 1
+          fi
+
+          printf '%s' "$SIGNING_KEY_ENCRYPTED_BASE64" | base64 --decode > "$RUNNER_TEMP/signing-key.enc"
+
+          openssl enc -d -aes-256-cbc \
+            -pbkdf2 \
+            -iter 200000 \
+            -in "$RUNNER_TEMP/signing-key.enc" \
+            -out android/app/ygn-release.keystore \
+            -pass env:ENCRYPTION_PASSWORD
+
+          chmod 600 android/app/ygn-release.keystore
+          rm -f "$RUNNER_TEMP/signing-key.enc"
+
+      - name: Build release APK
         working-directory: android
+        env:
+          ORG_GRADLE_PROJECT_KEYSTORE: ygn-release.keystore
+          ORG_GRADLE_PROJECT_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_KEY_ALIAS: ygnstamp
+          ORG_GRADLE_PROJECT_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APK
+      - name: Remove temporary signing key
+        if: always()
+        run: |
+          rm -f android/app/ygn-release.keystore
+          rm -f "$RUNNER_TEMP/signing-key.enc"
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: rocketchat-custom-android-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: rocketchat-custom-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 7
