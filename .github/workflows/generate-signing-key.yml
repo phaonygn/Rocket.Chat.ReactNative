@@ -1,0 +1,60 @@
+name: Generate Android Signing Key
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-key:
+    name: Generate encrypted signing key
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Generate and encrypt signing key
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          ENCRYPTION_PASSWORD: ${{ secrets.ENCRYPTION_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$ENCRYPTION_PASSWORD" ]; then
+            echo "Required secrets are missing."
+            exit 1
+          fi
+
+          keytool -genkeypair \
+            -keystore ygn-release.keystore \
+            -storetype PKCS12 \
+            -alias ygnstamp \
+            -keyalg RSA \
+            -keysize 3072 \
+            -validity 10000 \
+            -dname "CN=YGN RocketChat Stamp, O=YGN, C=JP" \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEYSTORE_PASSWORD" \
+            -noprompt
+
+          openssl enc -aes-256-cbc \
+            -pbkdf2 \
+            -iter 200000 \
+            -salt \
+            -in ygn-release.keystore \
+            -out ygn-release.keystore.enc \
+            -pass env:ENCRYPTION_PASSWORD
+
+      - name: Upload encrypted signing key
+        uses: actions/upload-artifact@v4
+        with:
+          name: ygn-encrypted-signing-key
+          path: ygn-release.keystore.enc
+          if-no-files-found: error
+          retention-days: 7
