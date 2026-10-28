@@ -53,3 +53,15 @@ jobs:
           node --version
           git --version
           echo "Environment check completed."
+
+      - name: Build unsigned iOS app
+        run: |
+          xcodebuild \
+            -workspace ios/RocketChat.xcworkspace \
+            -scheme RocketChat \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/YGNBuild" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
