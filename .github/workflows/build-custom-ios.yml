@@ -26,6 +26,10 @@ jobs:
           ruby-version: '2.7.7'
           bundler-cache: true
 
+      - name: Install CocoaPods dependencies
+        run: |
+          bundle exec pod install --project-directory=ios
+
       - name: Show Xcode version
         run: |
           xcodebuild -version
