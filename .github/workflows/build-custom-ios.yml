@@ -11,7 +11,7 @@ jobs:
   check-ios-environment:
     name: Check iOS Build Environment
     runs-on: macos-26
-    timeout-minutes: 20
+    timeout-minutes: 60
 
     steps:
       - name: Checkout source
