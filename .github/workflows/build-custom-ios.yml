@@ -54,6 +54,28 @@ jobs:
           git --version
           echo "Environment check completed."
 
+      - name: Exclude Apple Watch from iOS build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("ios/RocketChat.xcodeproj/project.pbxproj")
+          content = path.read_text()
+
+          lines_to_remove = [
+              "1ED1ECE32B8699DD00F6620C /* Embed Watch Content */,",
+              "1ED1ECE62B8699E900F6620C /* PBXTargetDependency */,",
+          ]
+
+          for line in lines_to_remove:
+              if line not in content:
+                  raise SystemExit(f"Expected setting not found: {line}")
+              content = content.replace(line, "", 1)
+
+          path.write_text(content)
+          print("Apple Watch excluded from YGN iOS build.")
+          PY
+
       - name: Build unsigned iOS app
         run: |
           xcodebuild \
