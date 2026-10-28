@@ -1,0 +1,42 @@
+
+name: Build Custom Rocket.Chat iOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-ios-environment:
+    name: Check iOS Build Environment
+    runs-on: macos-26
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Check iOS project
+        run: |
+          xcodebuild -list \
+            -project ios/RocketChat.xcodeproj
+
+      - name: Check required files
+        run: |
+          test -f ios/Podfile
+          test -f ios/RocketChat.xcodeproj/project.pbxproj
+          test -f ios/RocketChat.xcodeproj/xcshareddata/xcschemes/RocketChat.xcscheme
+          echo "iOS project files verified."
+
+      - name: Show environment
+        run: |
+          ruby --version
+          node --version
+          git --version
+          echo "Environment check completed."
