@@ -17,6 +17,9 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Setup Node and dependencies
+        uses: ./.github/actions/setup-node
+
       - name: Show Xcode version
         run: |
           xcodebuild -version
