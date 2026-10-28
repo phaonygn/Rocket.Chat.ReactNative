@@ -87,3 +87,11 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/YGNBuild" \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Upload unsigned iOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ygn-ios-unsigned-app
+          path: ${{ runner.temp }}/YGNBuild/Build/Products/Release-iphoneos/Rocket.Chat.app
+          if-no-files-found: error
+          retention-days: 7
