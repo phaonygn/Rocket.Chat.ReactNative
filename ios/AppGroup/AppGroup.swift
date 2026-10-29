@@ -14,7 +14,8 @@ class AppGroup: NSObject {
   @objc
   func constantsToExport() -> [AnyHashable : Any]! {
     // Get App Group directory
-    var path = ""
+    
+    var path = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].path
     var suiteName = ""
     
     if let suite = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String {
