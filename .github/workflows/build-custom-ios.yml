@@ -88,10 +88,27 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: Create unsigned IPA
+        run: |
+          APP_PATH="$RUNNER_TEMP/YGNBuild/Build/Products/Release-iphoneos/Rocket.Chat.app"
+          mkdir -p "$RUNNER_TEMP/YGNIPA/Payload"
+          ditto "$APP_PATH" "$RUNNER_TEMP/YGNIPA/Payload/Rocket.Chat.app"
+          cd "$RUNNER_TEMP/YGNIPA"
+          zip -qry "$RUNNER_TEMP/YGN-RocketChat.ipa" Payload
+          ls -lh "$RUNNER_TEMP/YGN-RocketChat.ipa"
+
       - name: Upload unsigned iOS app
         uses: actions/upload-artifact@v4
         with:
           name: ygn-ios-unsigned-app
           path: ${{ runner.temp }}/YGNBuild/Build/Products/Release-iphoneos/Rocket.Chat.app
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ygn-ios-unsigned-ipa
+          path: ${{ runner.temp }}/YGN-RocketChat.ipa
           if-no-files-found: error
           retention-days: 7
